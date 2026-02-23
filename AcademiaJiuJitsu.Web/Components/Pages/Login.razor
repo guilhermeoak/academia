@@ -1,0 +1,27 @@
+@page "/login"
+@inject SignInManager<AcademiaJiuJitsu.Infrastructure.Identity.ApplicationUser> SignInManager
+@inject NavigationManager Navigation
+
+<MudPaper Class="pa-4" Style="max-width:400px;">
+    <MudText Typo="Typo.h5">Entrar</MudText>
+    <MudTextField Label="E-mail" @bind-Value="email" />
+    <MudTextField Label="Senha" InputType="InputType.Password" @bind-Value="senha" />
+    <MudButton OnClick="Entrar" Color="Color.Primary">Login</MudButton>
+    @if (!string.IsNullOrWhiteSpace(erro))
+    {
+        <MudAlert Severity="Severity.Error">@erro</MudAlert>
+    }
+</MudPaper>
+
+@code {
+    private string email = "admin@academia.local";
+    private string senha = "Admin123!";
+    private string? erro;
+
+    private async Task Entrar()
+    {
+        var result = await SignInManager.PasswordSignInAsync(email, senha, true, false);
+        if (result.Succeeded) Navigation.NavigateTo("/");
+        else erro = "Credenciais inválidas";
+    }
+}

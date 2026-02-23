@@ -1,0 +1,41 @@
+@page "/aulas"
+@attribute [Authorize]
+@inject IAulaService AulaService
+@inject IProfessorService ProfessorService
+
+<MudText Typo="Typo.h4">Grade semanal</MudText>
+<MudSelect T="Guid?" Label="Filtrar por professor" @bind-Value="professorFiltro" ValueChanged="async _ => await Carregar()">
+    <MudSelectItem Value="@(Guid?)null">Todos</MudSelectItem>
+    @foreach (var p in professores)
+    {
+        <MudSelectItem Value="@p.Id">@p.Nome</MudSelectItem>
+    }
+</MudSelect>
+<MudButton OnClick="Novo">Nova aula</MudButton>
+
+<MudTable Items="aulas">
+    <HeaderContent><MudTh>Dia</MudTh><MudTh>Horário</MudTh><MudTh>Modalidade</MudTh><MudTh>Professor</MudTh></HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.DiaSemana</MudTd><MudTd>@context.HoraInicio - @context.HoraFim</MudTd><MudTd>@context.NomeModalidade</MudTd><MudTd>@context.NomeProfessor</MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    private List<AulaDto> aulas = [];
+    private List<ProfessorDto> professores = [];
+    private Guid? professorFiltro;
+
+    protected override async Task OnInitializedAsync()
+    {
+        professores = await ProfessorService.ListarAsync();
+        await Carregar();
+    }
+
+    private async Task Carregar() => aulas = await AulaService.ListarAsync(professorFiltro);
+    private async Task Novo()
+    {
+        if (!professores.Any()) return;
+        await AulaService.SalvarAsync(new AulaDto { NomeModalidade = "Jiu-Jitsu Adulto", DiaSemana = DiaSemana.Segunda, HoraInicio = new TimeSpan(19,0,0), HoraFim = new TimeSpan(20,0,0), ProfessorId = professores.First().Id, Ativa = true });
+        await Carregar();
+    }
+}

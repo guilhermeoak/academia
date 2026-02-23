@@ -1,0 +1,47 @@
+@page "/checkin"
+@attribute [Authorize]
+@inject IFrequenciaService FrequenciaService
+@inject IAlunoService AlunoService
+@inject IAulaService AulaService
+
+<MudText Typo="Typo.h4">Check-in rápido</MudText>
+<MudAutocomplete T="AlunoDto" Label="Aluno" SearchFunc="BuscarAluno" ToStringFunc="a => a?.NomeCompleto" @bind-Value="alunoSelecionado" />
+<MudSelect T="Guid?" Label="Aula (opcional)" @bind-Value="aulaSelecionada">
+    <MudSelectItem Value="@(Guid?)null">Sem aula</MudSelectItem>
+    @foreach (var aula in aulas)
+    {
+        <MudSelectItem Value="@aula.Id">@aula.NomeModalidade (@aula.DiaSemana)</MudSelectItem>
+    }
+</MudSelect>
+<MudTextField Label="Observação" @bind-Value="observacao" />
+<MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Registrar">Registrar presença</MudButton>
+
+<MudText Typo="Typo.h5" Class="mt-4">Painel do dia (@presencas.Count presentes)</MudText>
+<MudTable Items="presencas">
+    <HeaderContent><MudTh>Aluno</MudTh><MudTh>Data/Hora</MudTh></HeaderContent>
+    <RowTemplate><MudTd>@context.NomeAluno</MudTd><MudTd>@context.DataHoraCheckIn</MudTd></RowTemplate>
+</MudTable>
+
+@code {
+    private AlunoDto? alunoSelecionado;
+    private Guid? aulaSelecionada;
+    private string? observacao;
+    private List<AulaDto> aulas = [];
+    private List<CheckInDto> presencas = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        aulas = await AulaService.ListarAsync();
+        presencas = await FrequenciaService.CheckInsDoDiaAsync(DateTime.Today);
+    }
+
+    private async Task<IEnumerable<AlunoDto>> BuscarAluno(string value, CancellationToken cancellationToken)
+        => await AlunoService.ListarAsync(value);
+
+    private async Task Registrar()
+    {
+        if (alunoSelecionado is null) return;
+        await FrequenciaService.RegistrarCheckInAsync(new CheckInDto { AlunoId = alunoSelecionado.Id, AulaRecorrenteId = aulaSelecionada, DataHoraCheckIn = DateTime.Now, Observacao = observacao });
+        presencas = await FrequenciaService.CheckInsDoDiaAsync(DateTime.Today);
+    }
+}

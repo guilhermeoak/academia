@@ -1,0 +1,24 @@
+@page "/"
+@attribute [Authorize]
+@inject IFinanceiroService FinanceiroService
+
+<PageTitle>Dashboard</PageTitle>
+
+<MudText Typo="Typo.h4">Dashboard Financeiro</MudText>
+@if (_dashboard is null)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="12" md="4"><MudPaper Class="pa-4">Saldo atual: <b>@_dashboard.SaldoAtual.ToString("C")</b></MudPaper></MudItem>
+        <MudItem xs="12" md="4"><MudPaper Class="pa-4">Entradas mês: <b>@_dashboard.EntradasMes.ToString("C")</b></MudPaper></MudItem>
+        <MudItem xs="12" md="4"><MudPaper Class="pa-4">Saídas mês: <b>@_dashboard.SaidasMes.ToString("C")</b></MudPaper></MudItem>
+    </MudGrid>
+}
+
+@code {
+    private DashboardFinanceiroDto? _dashboard;
+    protected override async Task OnInitializedAsync() => _dashboard = await FinanceiroService.ObterDashboardAsync();
+}
