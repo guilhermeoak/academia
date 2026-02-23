@@ -1,0 +1,33 @@
+@page "/professores"
+@attribute [Authorize]
+@inject IProfessorService Service
+
+<MudText Typo="Typo.h4">Professores</MudText>
+<MudButton Variant="Variant.Filled" OnClick="Novo">Novo Professor</MudButton>
+<MudTable Items="professores">
+    <HeaderContent><MudTh>Nome</MudTh><MudTh>Faixa</MudTh><MudTh>Telefone</MudTh></HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.Nome</MudTd><MudTd>@context.Faixa</MudTd><MudTd>@context.Telefone</MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudDialog @bind-Visible="aberto"><DialogContent>
+    <EditForm Model="dto" OnValidSubmit="Salvar">
+        <DataAnnotationsValidator />
+        <MudTextField Label="Nome" @bind-Value="dto.Nome" Required="true" />
+        <MudTextField Label="Telefone" @bind-Value="dto.Telefone" Required="true" />
+        <MudSelect T="FaixaJiuJitsu" Label="Faixa" @bind-Value="dto.Faixa">
+            @foreach (var faixa in Enum.GetValues<FaixaJiuJitsu>()) { <MudSelectItem Value="faixa">@faixa</MudSelectItem> }
+        </MudSelect>
+        <MudButton ButtonType="ButtonType.Submit">Salvar</MudButton>
+    </EditForm>
+</DialogContent></MudDialog>
+
+@code {
+    private List<ProfessorDto> professores = [];
+    private bool aberto;
+    private ProfessorDto dto = new();
+    protected override async Task OnInitializedAsync() => professores = await Service.ListarAsync();
+    void Novo() { dto = new ProfessorDto(); aberto = true; }
+    async Task Salvar() { await Service.SalvarAsync(dto); aberto = false; professores = await Service.ListarAsync(); }
+}

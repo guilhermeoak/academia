@@ -1,0 +1,25 @@
+@inherits LayoutComponentBase
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudText Typo="Typo.h6">Academia Jiu-Jítsu</MudText>
+    </MudAppBar>
+    <MudDrawer Open="true" Variant="DrawerVariant.Mini" Elevation="1">
+        <MudNavMenu>
+            <MudNavLink Href="/" Match="NavLinkMatch.All">Dashboard</MudNavLink>
+            <MudNavLink Href="/alunos">Alunos</MudNavLink>
+            <MudNavLink Href="/professores">Professores</MudNavLink>
+            <MudNavLink Href="/aulas">Aulas / Grade</MudNavLink>
+            <MudNavLink Href="/checkin">Check-in</MudNavLink>
+            <MudNavLink Href="/financeiro">Financeiro</MudNavLink>
+            <MudNavLink Href="/relatorios">Relatórios</MudNavLink>
+            <MudNavLink Href="/login">Login</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+    <MudMainContent Class="pa-4">
+        @Body
+    </MudMainContent>
+</MudLayout>

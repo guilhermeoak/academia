@@ -1,0 +1,34 @@
+@page "/relatorios"
+@attribute [Authorize]
+@inject IFrequenciaService FrequenciaService
+
+<MudText Typo="Typo.h4">Relatórios de presença</MudText>
+<MudDatePicker Label="Início" @bind-Date="inicio" />
+<MudDatePicker Label="Fim" @bind-Date="fim" />
+<MudButton OnClick="Carregar">Gerar</MudButton>
+<MudButton OnClick="ExportarCsv">Exportar CSV</MudButton>
+
+<MudTable Items="dados">
+    <HeaderContent><MudTh>Aluno</MudTh><MudTh>Data</MudTh></HeaderContent>
+    <RowTemplate><MudTd>@context.NomeAluno</MudTd><MudTd>@context.DataHoraCheckIn.ToString("dd/MM/yyyy HH:mm")</MudTd></RowTemplate>
+</MudTable>
+
+@code {
+    private DateTime? inicio = DateTime.Today.AddDays(-30);
+    private DateTime? fim = DateTime.Today;
+    private List<CheckInDto> dados = [];
+
+    private async Task Carregar()
+    {
+        dados = await FrequenciaService.RelatorioAsync(inicio ?? DateTime.Today.AddDays(-30), fim ?? DateTime.Today, null);
+    }
+
+    private async Task ExportarCsv()
+    {
+        await Carregar();
+        var linhas = new List<string> { "Aluno,DataHora" };
+        linhas.AddRange(dados.Select(d => $"\"{d.NomeAluno}\",\"{d.DataHoraCheckIn:dd/MM/yyyy HH:mm}\""));
+        var path = Path.Combine("wwwroot", "relatorio-presenca.csv");
+        await File.WriteAllLinesAsync(path, linhas);
+    }
+}

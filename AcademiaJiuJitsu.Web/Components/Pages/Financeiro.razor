@@ -1,0 +1,20 @@
+@page "/financeiro"
+@attribute [Authorize]
+@inject IFinanceiroService Service
+
+<MudText Typo="Typo.h4">Financeiro</MudText>
+<MudButton OnClick="Novo">Novo lançamento</MudButton>
+<MudTable Items="lancamentos">
+    <HeaderContent><MudTh>Data</MudTh><MudTh>Tipo</MudTh><MudTh>Categoria</MudTh><MudTh>Valor</MudTh></HeaderContent>
+    <RowTemplate><MudTd>@context.Data.ToShortDateString()</MudTd><MudTd>@context.Tipo</MudTd><MudTd>@context.Categoria</MudTd><MudTd>@context.Valor.ToString("C")</MudTd></RowTemplate>
+</MudTable>
+
+@code {
+    private List<LancamentoFinanceiroDto> lancamentos = [];
+    protected override async Task OnInitializedAsync() => lancamentos = await Service.ListarLancamentosAsync();
+    private async Task Novo()
+    {
+        await Service.SalvarLancamentoAsync(new LancamentoFinanceiroDto { Tipo = TipoLancamento.Saida, Categoria = "Água/Luz", Descricao = "Conta do mês", Valor = 320, Data = DateTime.Today, FormaPagamento = FormaPagamento.Pix });
+        lancamentos = await Service.ListarLancamentosAsync();
+    }
+}

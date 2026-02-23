@@ -1,0 +1,59 @@
+@page "/alunos"
+@attribute [Authorize]
+@inject IAlunoService Service
+
+<MudText Typo="Typo.h4">Alunos</MudText>
+<MudTextField @bind-Value="busca" Placeholder="Buscar por nome/telefone" Immediate="true" OnBlur="_ => Carregar()" />
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Novo">Novo Aluno</MudButton>
+
+<MudTable Items="alunos" Dense="true" Hover="true">
+    <HeaderContent>
+        <MudTh>Nome</MudTh><MudTh>Telefone</MudTh><MudTh>Faixa</MudTh><MudTh>Vencimento</MudTh><MudTh>Ações</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.NomeCompleto</MudTd>
+        <MudTd>@context.Telefone</MudTd>
+        <MudTd>@context.Faixa</MudTd>
+        <MudTd>@context.DataVencimentoAtual?.ToShortDateString()</MudTd>
+        <MudTd><MudButton Size="Size.Small" OnClick="() => Editar(context)">Editar</MudButton></MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudDialog @bind-Visible="dialogAberto">
+    <DialogContent>
+        <EditForm Model="editando" OnValidSubmit="Salvar">
+            <DataAnnotationsValidator />
+            <MudTextField Label="Nome" @bind-Value="editando.NomeCompleto" Required="true" />
+            <MudTextField Label="Telefone" @bind-Value="editando.Telefone" Required="true" />
+            <MudSelect T="FaixaJiuJitsu" Label="Faixa" @bind-Value="editando.Faixa">
+                @foreach (var faixa in Enum.GetValues<FaixaJiuJitsu>())
+                {
+                    <MudSelectItem Value="faixa">@faixa</MudSelectItem>
+                }
+            </MudSelect>
+            <MudNumericField T="decimal" Label="Valor plano" @bind-Value="editando.ValorPlanoAtual" />
+            <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary">Salvar</MudButton>
+        </EditForm>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    private List<AlunoDto> alunos = [];
+    private string? busca;
+    private bool dialogAberto;
+    private AlunoDto editando = new();
+
+    protected override async Task OnInitializedAsync() => await Carregar();
+
+    private async Task Carregar() => alunos = await Service.ListarAsync(busca);
+    private void Novo() { editando = new AlunoDto { DataInicioMatricula = DateTime.Today }; dialogAberto = true; }
+    private void Editar(AlunoDto aluno) { editando = aluno; dialogAberto = true; }
+
+    private async Task Salvar()
+    {
+        if (editando.Id == Guid.Empty) await Service.CriarAsync(editando);
+        else await Service.AtualizarAsync(editando);
+        dialogAberto = false;
+        await Carregar();
+    }
+}
